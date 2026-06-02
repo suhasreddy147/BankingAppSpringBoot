@@ -21,6 +21,6 @@ public class Accounts extends BaseEntity{
 	
 	private String accountType;
 	
-	private String branch_address;
+	private String branchAddress;
 	
 }
