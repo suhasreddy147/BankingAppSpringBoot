@@ -1,5 +1,7 @@
 package com.banking.accounts.service.impl;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import com.banking.accounts.constants.AccountsConstants;
 import com.banking.accounts.dto.CustomerDto;
 import com.banking.accounts.entity.Accounts;
 import com.banking.accounts.entity.Customer;
+import com.banking.accounts.exceptions.CustomerAlreadyExistsException;
 import com.banking.accounts.mapper.CustomerMapper;
 import com.banking.accounts.repository.AccountsRepository;
 import com.banking.accounts.repository.CustomerRepository;
@@ -27,7 +30,13 @@ public class AccountsServiceImpl implements IAccountsService{
 	@Override
 	public void createAccount(CustomerDto customerDto) {
 		
+		Optional<Customer> optionalCustomer = customerRepository.findByMobileNumber(customerDto.getMobileNumber());
+		if(optionalCustomer.isPresent()) {
+			throw new CustomerAlreadyExistsException("Customer already exists with given mobile number");
+		}
 		Customer customer = CustomerMapper.mapToCustomer(customerDto, new Customer());
+		customer.setCreatedAt(LocalDateTime.now());
+		customer.setCreatedBy("anonymous");
 		Customer savedCustomer = customerRepository.save(customer);
 		accountsRepository.save(createNewAccount(savedCustomer));
 	}
@@ -39,6 +48,8 @@ public class AccountsServiceImpl implements IAccountsService{
 		account.setAccountNumber(randomAccNumber);
 		account.setAccountType(AccountsConstants.SAVINGS);
 		account.setBranchAddress(AccountsConstants.ADDRESS);
+		account.setCreatedAt(LocalDateTime.now());
+		account.setCreatedBy("anonymous");
 		return account;
 	}
 }
